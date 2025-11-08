@@ -1,0 +1,156 @@
+0 verbose cli /usr/local/bin/node /usr/local/bin/npm
+1 info using npm@10.9.3
+2 info using node@v21.7.3
+3 silly config load:file:/usr/local/lib/node_modules/npm/npmrc
+4 silly config load:file:/home/container/.npmrc
+5 silly config load:file:/usr/local/etc/npmrc
+6 verbose title npm install
+7 verbose argv "install"
+8 verbose logfile logs-max:10 dir:/home/container/.npm/_logs/2025-08-03T15_50_09_953Z-
+9 verbose logfile /home/container/.npm/_logs/2025-08-03T15_50_09_953Z-debug-0.log
+10 silly logfile start cleaning logs, removing 1 files
+11 silly logfile done cleaning log files
+12 silly packumentCache heap:2197815296 maxSize:549453824 maxEntrySize:274726912
+13 silly idealTree buildDeps
+14 warn EBADENGINE Unsupported engine {
+14 warn EBADENGINE   package: 'glob@11.0.1',
+14 warn EBADENGINE   required: { node: '20 || >=22' },
+14 warn EBADENGINE   current: { node: 'v21.7.3', npm: '10.9.3' }
+14 warn EBADENGINE }
+15 warn EBADENGINE Unsupported engine {
+15 warn EBADENGINE   package: 'jackspeak@4.1.0',
+15 warn EBADENGINE   required: { node: '20 || >=22' },
+15 warn EBADENGINE   current: { node: 'v21.7.3', npm: '10.9.3' }
+15 warn EBADENGINE }
+16 warn EBADENGINE Unsupported engine {
+16 warn EBADENGINE   package: 'lru-cache@11.1.0',
+16 warn EBADENGINE   required: { node: '20 || >=22' },
+16 warn EBADENGINE   current: { node: 'v21.7.3', npm: '10.9.3' }
+16 warn EBADENGINE }
+17 warn EBADENGINE Unsupported engine {
+17 warn EBADENGINE   package: 'minimatch@10.0.1',
+17 warn EBADENGINE   required: { node: '20 || >=22' },
+17 warn EBADENGINE   current: { node: 'v21.7.3', npm: '10.9.3' }
+17 warn EBADENGINE }
+18 warn EBADENGINE Unsupported engine {
+18 warn EBADENGINE   package: 'path-scurry@2.0.0',
+18 warn EBADENGINE   required: { node: '20 || >=22' },
+18 warn EBADENGINE   current: { node: 'v21.7.3', npm: '10.9.3' }
+18 warn EBADENGINE }
+19 warn EBADENGINE Unsupported engine {
+19 warn EBADENGINE   package: 'rimraf@6.0.1',
+19 warn EBADENGINE   required: { node: '20 || >=22' },
+19 warn EBADENGINE   current: { node: 'v21.7.3', npm: '10.9.3' }
+19 warn EBADENGINE }
+20 silly reify moves {}
+21 silly audit bulk request {
+21 silly audit   '@discordjs/builders': [ '1.10.1' ],
+21 silly audit   '@discordjs/collection': [ '1.5.3', '2.1.1' ],
+21 silly audit   '@discordjs/formatters': [ '0.6.0' ],
+21 silly audit   '@discordjs/rest': [ '2.4.3' ],
+21 silly audit   '@discordjs/util': [ '1.1.1' ],
+21 silly audit   '@discordjs/voice': [ '0.16.1' ],
+21 silly audit   'discord-api-types': [ '0.37.61', '0.37.120' ],
+21 silly audit   '@discordjs/ws': [ '1.2.1' ],
+21 silly audit   '@isaacs/cliui': [ '8.0.2' ],
+21 silly audit   '@sapphire/async-queue': [ '1.5.5' ],
+21 silly audit   '@sapphire/shapeshift': [ '4.0.0' ],
+21 silly audit   '@sapphire/snowflake': [ '3.5.3' ],
+21 silly audit   '@types/node': [ '22.14.1' ],
+21 silly audit   '@types/ws': [ '8.18.1' ],
+21 silly audit   '@vladfrangu/async_event_emitter': [ '2.4.6' ],
+21 silly audit   'ansi-regex': [ '6.1.0', '5.0.1' ],
+21 silly audit   'ansi-styles': [ '6.2.1', '4.3.0' ],
+21 silly audit   'balanced-match': [ '1.0.2' ],
+21 silly audit   'brace-expansion': [ '2.0.1' ],
+21 silly audit   'color-convert': [ '2.0.1' ],
+21 silly audit   'color-name': [ '1.1.4' ],
+21 silly audit   'cross-spawn': [ '7.0.6' ],
+21 silly audit   'discord.js': [ '14.18.0' ],
+21 silly audit   eastasianwidth: [ '0.2.0' ],
+21 silly audit   'emoji-regex': [ '9.2.2', '8.0.0' ],
+21 silly audit   'fast-deep-equal': [ '3.1.3' ],
+21 silly audit   'foreground-child': [ '3.3.1' ],
+21 silly audit   glob: [ '11.0.1' ],
+21 silly audit   'is-fullwidth-code-point': [ '3.0.0' ],
+21 silly audit   isexe: [ '2.0.0' ],
+21 silly audit   jackspeak: [ '4.1.0' ],
+21 silly audit   lodash: [ '4.17.21' ],
+21 silly audit   'lodash.snakecase': [ '4.1.1' ],
+21 silly audit   'lru-cache': [ '11.1.0' ],
+21 silly audit   'magic-bytes.js': [ '1.11.0' ],
+21 silly audit   minimatch: [ '10.0.1' ],
+21 silly audit   minipass: [ '7.1.2' ],
+21 silly audit   'node-fetch': [ '2.7.0' ],
+21 silly audit   'package-json-from-dist': [ '1.0.1' ],
+21 silly audit   'path-key': [ '3.1.1' ],
+21 silly audit   'path-scurry': [ '2.0.0' ],
+21 silly audit   'play-audio': [ '0.5.2' ],
+21 silly audit   'play-dl': [ '1.9.7' ],
+21 silly audit   'prism-media': [ '1.3.5' ],
+21 silly audit   rimraf: [ '6.0.1' ],
+21 silly audit   'shebang-command': [ '2.0.0' ],
+21 silly audit   'shebang-regex': [ '3.0.0' ],
+21 silly audit   'signal-exit': [ '4.1.0' ],
+21 silly audit   'string-width': [ '5.1.2', '4.2.3' ],
+21 silly audit   'strip-ansi': [ '6.0.1', '7.1.0' ],
+21 silly audit   tr46: [ '0.0.3' ],
+21 silly audit   'ts-mixer': [ '6.0.4' ],
+21 silly audit   tslib: [ '2.8.1' ],
+21 silly audit   undici: [ '6.21.1' ],
+21 silly audit   'undici-types': [ '6.21.0' ],
+21 silly audit   'webidl-conversions': [ '3.0.1' ],
+21 silly audit   'whatwg-url': [ '5.0.0' ],
+21 silly audit   which: [ '2.0.2' ],
+21 silly audit   'wrap-ansi': [ '8.1.0', '7.0.0' ],
+21 silly audit   ws: [ '8.18.1' ]
+21 silly audit }
+22 http fetch POST 200 https://registry.npmjs.org/-/npm/v1/security/advisories/bulk 426ms
+23 silly audit report {
+23 silly audit report   'brace-expansion': [
+23 silly audit report     {
+23 silly audit report       id: 1105444,
+23 silly audit report       url: 'https://github.com/advisories/GHSA-v6h2-p8h4-qcjw',
+23 silly audit report       title: 'brace-expansion Regular Expression Denial of Service vulnerability',
+23 silly audit report       severity: 'low',
+23 silly audit report       vulnerable_versions: '>=2.0.0 <=2.0.1',
+23 silly audit report       cwe: [Array],
+23 silly audit report       cvss: [Object]
+23 silly audit report     }
+23 silly audit report   ],
+23 silly audit report   undici: [
+23 silly audit report     {
+23 silly audit report       id: 1104500,
+23 silly audit report       url: 'https://github.com/advisories/GHSA-cxrh-j4jr-qwg3',
+23 silly audit report       title: 'undici Denial of Service attack via bad certificate data',
+23 silly audit report       severity: 'low',
+23 silly audit report       vulnerable_versions: '>=6.0.0 <6.21.2',
+23 silly audit report       cwe: [Array],
+23 silly audit report       cvss: [Object]
+23 silly audit report     }
+23 silly audit report   ]
+23 silly audit report }
+24 silly packumentCache corgi:https://registry.npmjs.org/brace-expansion cache-miss
+25 silly packumentCache corgi:https://registry.npmjs.org/undici cache-miss
+26 http cache https://registry.npmjs.org/brace-expansion 27ms (cache hit)
+27 silly packumentCache corgi:https://registry.npmjs.org/brace-expansion set size:16192 disposed:false
+28 http cache https://registry.npmjs.org/undici 32ms (cache hit)
+29 silly packumentCache corgi:https://registry.npmjs.org/undici set size:391346 disposed:false
+30 silly packumentCache corgi:https://registry.npmjs.org/minimatch cache-miss
+31 http cache https://registry.npmjs.org/minimatch 6ms (cache hit)
+32 silly packumentCache corgi:https://registry.npmjs.org/minimatch set size:143741 disposed:false
+33 silly packumentCache corgi:https://registry.npmjs.org/@discordjs%2frest cache-miss
+34 silly packumentCache corgi:https://registry.npmjs.org/discord.js cache-miss
+35 http cache https://registry.npmjs.org/discord.js 20ms (cache hit)
+36 silly packumentCache corgi:https://registry.npmjs.org/discord.js set size:3747780 disposed:false
+37 http cache https://registry.npmjs.org/@discordjs%2frest 95ms (cache hit)
+38 silly packumentCache corgi:https://registry.npmjs.org/@discordjs%2frest set size:2656899 disposed:false
+39 silly packumentCache corgi:https://registry.npmjs.org/@discordjs%2fws cache-miss
+40 http cache https://registry.npmjs.org/@discordjs%2fws 58ms (cache hit)
+41 silly packumentCache corgi:https://registry.npmjs.org/@discordjs%2fws set size:2473726 disposed:false
+42 verbose cwd /home/container
+43 verbose os Linux 5.15.0-113-generic
+44 verbose node v21.7.3
+45 verbose npm  v10.9.3
+46 verbose exit 0
+47 info ok

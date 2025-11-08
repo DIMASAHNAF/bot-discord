@@ -1,0 +1,37 @@
+0 verbose cli /usr/local/bin/node /usr/local/bin/npm
+1 info using npm@10.9.3
+2 info using node@v21.7.3
+3 silly config load:file:/usr/local/lib/node_modules/npm/npmrc
+4 silly config load:file:/home/container/.npmrc
+5 silly config load:file:/usr/local/etc/npmrc
+6 verbose title npm install
+7 verbose argv "install"
+8 verbose logfile logs-max:10 dir:/home/container/.npm/_logs/2025-08-03T15_20_11_464Z-
+9 verbose logfile /home/container/.npm/_logs/2025-08-03T15_20_11_464Z-debug-0.log
+10 silly logfile start cleaning logs, removing 1 files
+11 silly logfile done cleaning log files
+12 silly packumentCache heap:2197815296 maxSize:549453824 maxEntrySize:274726912
+13 verbose stack JSONParseError: Expected double-quoted property name in JSON at position 235 (line 11 column 3) while parsing near "...axios\": \"^1.6.8\",\n  }\n}\n"
+13 verbose stack     at /usr/local/lib/node_modules/npm/node_modules/read-package-json-fast/lib/index.js:7:61
+13 verbose stack     at async #initTree (/usr/local/lib/node_modules/npm/node_modules/@npmcli/arborist/lib/arborist/build-ideal-tree.js:268:21)
+13 verbose stack     at async Arborist.buildIdealTree (/usr/local/lib/node_modules/npm/node_modules/@npmcli/arborist/lib/arborist/build-ideal-tree.js:178:7)
+13 verbose stack     at async Promise.all (index 1)
+13 verbose stack     at async Arborist.reify (/usr/local/lib/node_modules/npm/node_modules/@npmcli/arborist/lib/arborist/reify.js:131:5)
+13 verbose stack     at async Install.exec (/usr/local/lib/node_modules/npm/lib/commands/install.js:150:5)
+13 verbose stack     at async Npm.exec (/usr/local/lib/node_modules/npm/lib/npm.js:207:9)
+13 verbose stack     at async module.exports (/usr/local/lib/node_modules/npm/lib/cli/entry.js:74:5)
+14 error code EJSONPARSE
+15 error path /home/container/package.json
+16 error JSON.parse Expected double-quoted property name in JSON at position 235 (line 11 column 3) while parsing near "...axios\": \"^1.6.8\",\n  }\n}\n"
+17 error JSON.parse Failed to parse JSON data.
+17 error JSON.parse Note: package.json must be actual JSON, not just JavaScript.
+18 silly unfinished npm timer reify 1754234412038
+19 silly unfinished npm timer reify:loadTrees 1754234412039
+20 silly unfinished npm timer idealTree:init 1754234412040
+21 verbose cwd /home/container
+22 verbose os Linux 5.15.0-113-generic
+23 verbose node v21.7.3
+24 verbose npm  v10.9.3
+25 verbose exit 1
+26 verbose code 1
+27 error A complete log of this run can be found in: /home/container/.npm/_logs/2025-08-03T15_20_11_464Z-debug-0.log
