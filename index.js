@@ -16,6 +16,8 @@ const client = new Client({
   partials: [Partials.Channel]
 });
 
+client.setMaxListeners(50);
+
 // Load semua command dari folder commands/
 fs.readdirSync('./commands').forEach(file => {
   if (file.endsWith('.js')) {
@@ -51,7 +53,7 @@ rl.on('line', async (input) => {
   // Tambah perintah terminal lain jika perlu
 });
 
-client.once('ready', () => {
+client.once('clientReady', () => {
   console.log(`✅ Bot login sebagai ${client.user.tag}`);
 });
 

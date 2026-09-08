@@ -1,35 +1,66 @@
-const { joinVoiceChannel } = require('@discordjs/voice');
+const { joinVoiceChannel, getVoiceConnection } = require('@discordjs/voice');
 
 module.exports = (client) => {
   client.on('messageCreate', async (message) => {
-    if (!message.content.startsWith('!joinvoice') || message.author.bot) return;
+    if (message.author.bot || !message.guild) return;
 
-    const args = message.content.split(' ');
-    const channelId = args[1];
+    // Command: !joinvoice [ID/Nama]
+    if (message.content.startsWith('!joinvoice')) {
+      const args = message.content.trim().split(/\s+/);
+      const targetParam = args[1];
 
-    if (!channelId) {
-      return message.reply('❌ Kamu harus menyertakan ID channel voice. Contoh: `!joinvoice 123456789012345678`');
+      let targetChannel = null;
+
+      if (targetParam) {
+        const cleanId = targetParam.replace(/[<#>]/g, '');
+        targetChannel = message.guild.channels.cache.get(cleanId);
+        if (!targetChannel) {
+          try {
+            targetChannel = await message.guild.channels.fetch(cleanId).catch(() => null);
+          } catch {}
+        }
+
+        if (!targetChannel) {
+          const searchName = args.slice(1).join(' ').toLowerCase();
+          targetChannel = message.guild.channels.cache.find(
+            (c) => c.isVoiceBased && c.isVoiceBased() && c.name.toLowerCase() === searchName
+          );
+        }
+      } else {
+        // Ambil channel tempat pengirim berada
+        targetChannel = message.member?.voice?.channel;
+      }
+
+      if (!targetChannel || !targetChannel.isVoiceBased()) {
+        return message.reply(
+          '❌ **Channel voice tidak ditemukan!**\n' +
+          '• Masuk ke salah satu voice channel lalu ketik `!joinvoice`\n' +
+          '• Atau ketik `!joinvoice <ID_CHANNEL>` / `!joinvoice <Nama Channel>`'
+        );
+      }
+
+      try {
+        joinVoiceChannel({
+          channelId: targetChannel.id,
+          guildId: message.guild.id,
+          adapterCreator: message.guild.voiceAdapterCreator,
+          selfDeaf: false,
+        });
+
+        return message.reply(`✅ Bot berhasil join ke voice channel **${targetChannel.name}**.`);
+      } catch (error) {
+        console.error('[JoinVoice] Error:', error);
+        return message.reply('❌ Gagal join ke voice channel. Pastikan bot memiliki izin Connect di channel tersebut.');
+      }
     }
 
-    const voiceChannel = message.guild.channels.cache.get(channelId);
+    // Command: !leavevoice
+    if (message.content.startsWith('!leavevoice')) {
+      const conn = getVoiceConnection(message.guild.id);
+      if (!conn) return message.reply('❌ Bot sedang tidak berada di voice channel mana pun.');
 
-    // Validasi: channel ditemukan dan tipe voice
-    if (!voiceChannel || voiceChannel.type !== 2) {
-      return message.reply('❌ Channel tidak ditemukan atau bukan channel voice.');
-    }
-
-    try {
-      joinVoiceChannel({
-        channelId: voiceChannel.id,
-        guildId: voiceChannel.guild.id,
-        adapterCreator: voiceChannel.guild.voiceAdapterCreator,
-        selfDeaf: false,
-      });
-
-      message.reply(`✅ Bot berhasil join ke voice channel **${voiceChannel.name}**.`);
-    } catch (error) {
-      console.error(error);
-      message.reply('❌ Gagal join ke channel. Cek izin bot dan status channel.');
+      conn.destroy();
+      return message.reply('⏹️ Bot berhasil keluar dari voice channel.');
     }
   });
 };
