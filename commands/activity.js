@@ -1,132 +1,174 @@
-const { ActivityType } = require('discord.js');
+const { SlashCommandBuilder, ActivityType, PermissionFlagsBits } = require('discord.js');
+const { getVoiceConnection } = require('@discordjs/voice');
 
-module.exports = (client) => {
-  let isCustom = false;
+let isCustom = false;
+let clientRef = null;
 
-  // Daftar status yang akan berputar otomatis
-  const getActivities = () => {
-    const totalMembers = client.guilds.cache.reduce((acc, guild) => acc + (guild.memberCount || 0), 0);
-    const totalGuilds = client.guilds.cache.size;
+const getActivities = (client) => {
+  const totalMembers = client.guilds.cache.reduce((acc, guild) => acc + (guild.memberCount || 0), 0);
+  const totalGuilds = client.guilds.cache.size;
+  const ping = client.ws.ping;
+  const ramBotMB = (process.memoryUsage().rss / 1024 / 1024).toFixed(0);
 
-    return [
-      {
-        name: 'AFK Voice 24/7 🎙️',
-        type: ActivityType.Streaming,
-        url: 'https://www.twitch.tv/discord' // Warna ungu (Streaming)
-      },
-      {
-        name: `${totalMembers} Members di ${totalGuilds} Server 👥`,
-        type: ActivityType.Watching
-      },
-      {
-        name: 'Perintah: !afkvoice & !help 🛠️',
-        type: ActivityType.Listening
-      },
-      {
-        name: 'Melayani Tuan Muda Hotwill 👑',
-        type: ActivityType.Playing
-      }
-    ];
-  };
+  let activeVoiceName = null;
+  for (const guild of client.guilds.cache.values()) {
+    const conn = getVoiceConnection(guild.id);
+    if (conn && conn.joinConfig && conn.joinConfig.channelId) {
+      const ch = guild.channels.cache.get(conn.joinConfig.channelId);
+      if (ch) activeVoiceName = ch.name;
+      break;
+    }
+  }
 
-  let currentIndex = 0;
+  return [
+    {
+      name: activeVoiceName ? `Standby Voice: ${activeVoiceName} 🎙️` : 'AFK Voice 24/7 🎙️',
+      type: ActivityType.Streaming,
+      url: 'https://www.twitch.tv/discord'
+    },
+    {
+      name: `⚡ Ping: ${ping}ms | 💾 RAM: ${ramBotMB}MB`,
+      type: ActivityType.Playing
+    },
+    {
+      name: `👥 ${totalMembers} Users di ${totalGuilds} Server`,
+      type: ActivityType.Watching
+    },
+    {
+      name: '👑 Babu Tuan Muda Hotwill | /help',
+      type: ActivityType.Listening
+    }
+  ];
+};
 
-  function updateActivity() {
-    if (isCustom || !client.user) return;
+let currentIndex = 0;
 
-    const activities = getActivities();
-    if (activities.length === 0) return;
+function updateActivity() {
+  if (isCustom || !clientRef || !clientRef.user) return;
 
-    const current = activities[currentIndex];
+  const activities = getActivities(clientRef);
+  if (activities.length === 0) return;
+
+  const current = activities[currentIndex % activities.length];
+  clientRef.user.setPresence({
+    activities: [{
+      name: current.name,
+      type: current.type,
+      url: current.url || undefined
+    }],
+    status: 'online'
+  });
+
+  currentIndex = (currentIndex + 1) % activities.length;
+}
+
+const setActivityCommand = {
+  data: new SlashCommandBuilder()
+    .setName('setactivity')
+    .setDescription('Ubah status aktivitas bot Discord')
+    .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
+    .addStringOption(opt =>
+      opt.setName('tipe')
+        .setDescription('Tipe aktivitas bot')
+        .setRequired(true)
+        .addChoices(
+          { name: 'Playing', value: 'playing' },
+          { name: 'Streaming', value: 'streaming' },
+          { name: 'Listening', value: 'listening' },
+          { name: 'Watching', value: 'watching' },
+          { name: 'Competing', value: 'competing' }
+        )
+    )
+    .addStringOption(opt =>
+      opt.setName('teks')
+        .setDescription('Teks status yang ingin ditampilkan')
+        .setRequired(true)
+    ),
+  async execute(interaction, client) {
+    const typeStr = interaction.options.getString('tipe');
+    const text = interaction.options.getString('teks');
+
+    let actType = ActivityType.Playing;
+    let url = undefined;
+
+    if (typeStr === 'streaming') {
+      actType = ActivityType.Streaming;
+      url = 'https://www.twitch.tv/discord';
+    } else if (typeStr === 'listening') {
+      actType = ActivityType.Listening;
+    } else if (typeStr === 'watching') {
+      actType = ActivityType.Watching;
+    } else if (typeStr === 'competing') {
+      actType = ActivityType.Competing;
+    }
+
+    isCustom = true;
     client.user.setPresence({
-      activities: [{
-        name: current.name,
-        type: current.type,
-        url: current.url || undefined
-      }],
+      activities: [{ name: text, type: actType, url }],
       status: 'online'
     });
 
-    currentIndex = (currentIndex + 1) % activities.length;
+    return interaction.reply({
+      content: `✅ Status bot berhasil diubah ke **${typeStr.toUpperCase()}**: "${text}"`,
+      ephemeral: true
+    });
   }
+};
 
-  // Mulai rotasi activity
-  const startRotation = () => {
+const setStatusCommand = {
+  data: new SlashCommandBuilder()
+    .setName('setstatus')
+    .setDescription('Ubah lingkaran status kehadiran bot')
+    .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
+    .addStringOption(opt =>
+      opt.setName('status')
+        .setDescription('Pilih status kehadiran')
+        .setRequired(true)
+        .addChoices(
+          { name: 'Online (Hijau)', value: 'online' },
+          { name: 'Idle (Kuning)', value: 'idle' },
+          { name: 'Do Not Disturb (Merah)', value: 'dnd' }
+        )
+    ),
+  async execute(interaction, client) {
+    const newStatus = interaction.options.getString('status');
+    client.user.setStatus(newStatus);
+    return interaction.reply({
+      content: `✅ Status kehadiran bot berhasil diubah ke **${newStatus.toUpperCase()}**.`,
+      ephemeral: true
+    });
+  }
+};
+
+const resetActivityCommand = {
+  data: new SlashCommandBuilder()
+    .setName('resetactivity')
+    .setDescription('Kembalikan status aktivitas bot ke rotasi otomatis real-time')
+    .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
+  async execute(interaction, client) {
+    isCustom = false;
     updateActivity();
-    // Rotasi setiap 15 detik (aman dari rate limit Discord)
-    setInterval(updateActivity, 15000);
-    console.log('✅ Activity & Rich Presence bot berhasil diaktifkan!');
-  };
-
-  if (client.isReady()) {
-    startRotation();
-  } else {
-    client.once('clientReady', startRotation);
+    return interaction.reply({
+      content: '✅ Status bot berhasil dikembalikan ke **real-time dinamis otomatis**.',
+      ephemeral: true
+    });
   }
+};
 
-  // Handler command di Discord untuk ubah status kapan pun
-  client.on('messageCreate', async (message) => {
-    if (message.author.bot || !message.guild) return;
-
-    // Perintah: !setactivity <playing|streaming|listening|watching|competing> <teks>
-    if (message.content.startsWith('!setactivity')) {
-      const args = message.content.trim().split(/\s+/);
-      const typeStr = args[1]?.toLowerCase();
-      const text = args.slice(2).join(' ');
-
-      if (!typeStr || !text) {
-        return message.reply(
-          '❌ **Format salah!**\nContoh penggunaan:\n' +
-          '• `!setactivity streaming Live Voice 24/7` *(Warna ungu Streaming)*\n' +
-          '• `!setactivity playing Bersama Komunitas`\n' +
-          '• `!setactivity watching Server Discord`\n' +
-          '• `!setactivity listening Musik Santai`\n' +
-          '• `!resetactivity` *(Kembali ke rotasi otomatis)*'
-        );
-      }
-
-      let actType = ActivityType.Playing;
-      let url = undefined;
-
-      if (typeStr === 'streaming') {
-        actType = ActivityType.Streaming;
-        url = 'https://www.twitch.tv/discord';
-      } else if (typeStr === 'listening') {
-        actType = ActivityType.Listening;
-      } else if (typeStr === 'watching') {
-        actType = ActivityType.Watching;
-      } else if (typeStr === 'competing') {
-        actType = ActivityType.Competing;
-      }
-
-      isCustom = true;
-      client.user.setPresence({
-        activities: [{ name: text, type: actType, url }],
-        status: 'online'
-      });
-
-      return message.reply(`✅ Status bot berhasil diubah ke **${typeStr.toUpperCase()}**: "${text}"`);
-    }
-
-    // Perintah: !setstatus <online|idle|dnd>
-    if (message.content.startsWith('!setstatus')) {
-      const args = message.content.trim().split(/\s+/);
-      const newStatus = args[1]?.toLowerCase();
-      const validStatuses = ['online', 'idle', 'dnd'];
-
-      if (!validStatuses.includes(newStatus)) {
-        return message.reply('❌ Status tidak valid! Pilih: `online` (hijau), `idle` (kuning), atau `dnd` (merah).');
-      }
-
-      client.user.setStatus(newStatus);
-      return message.reply(`✅ Lingkaran status bot berhasil diubah ke **${newStatus}**.`);
-    }
-
-    // Perintah: !resetactivity
-    if (message.content.startsWith('!resetactivity')) {
-      isCustom = false;
+module.exports = {
+  commands: [setActivityCommand, setStatusCommand, resetActivityCommand],
+  init(client) {
+    clientRef = client;
+    const startRotation = () => {
       updateActivity();
-      return message.reply('✅ Status bot dikembalikan ke **rotasi otomatis**.');
+      setInterval(updateActivity, 15000);
+      console.log('✅ Real-time Activity & Rich Presence bot aktif!');
+    };
+
+    if (client.isReady()) {
+      startRotation();
+    } else {
+      client.once('clientReady', startRotation);
     }
-  });
+  }
 };

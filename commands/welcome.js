@@ -1,4 +1,9 @@
-const { EmbedBuilder, PermissionFlagsBits } = require('discord.js');
+const { 
+  SlashCommandBuilder, 
+  EmbedBuilder, 
+  PermissionFlagsBits, 
+  ChannelType 
+} = require('discord.js');
 const fs = require('fs');
 const path = require('path');
 
@@ -21,72 +26,75 @@ function saveWelcomeConfig(data) {
   }
 }
 
-module.exports = (client) => {
-  // Command untuk set channel welcome
-  client.on('messageCreate', async (message) => {
-    if (message.author.bot || !message.guild) return;
+module.exports = {
+  data: new SlashCommandBuilder()
+    .setName('setwelcome')
+    .setDescription('Mengatur channel pengiriman pesan sambutan selamat datang untuk member baru')
+    .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
+    .addChannelOption(opt =>
+      opt.setName('channel')
+        .setDescription('Target channel teks sambutan')
+        .addChannelTypes(ChannelType.GuildText)
+        .setRequired(true)
+    ),
+  async execute(interaction) {
+    const channel = interaction.options.getChannel('channel');
+    const config = getWelcomeConfig();
+    config[interaction.guild.id] = channel.id;
+    saveWelcomeConfig(config);
 
-    if (message.content.startsWith('!setwelcome')) {
-      if (!message.member.permissions.has(PermissionFlagsBits.Administrator)) {
-        return message.reply('❌ Hanya Administrator yang dapat mengatur channel welcome.');
-      }
-
-      const channel = message.mentions.channels.first() || message.channel;
+    return interaction.reply({
+      content: `✅ Channel sambutan selamat datang berhasil disetel ke **<#${channel.id}>**.`,
+      ephemeral: true
+    });
+  },
+  init(client) {
+    client.on('guildMemberAdd', async (member) => {
       const config = getWelcomeConfig();
-      config[message.guild.id] = channel.id;
-      saveWelcomeConfig(config);
+      const channelId = config[member.guild.id];
+      if (!channelId) return;
 
-      return message.reply(`✅ Channel sambutan selamat datang berhasil disetel ke **<#${channel.id}>**.`);
-    }
-  });
+      const channel = member.guild.channels.cache.get(channelId);
+      if (!channel || !channel.isTextBased()) return;
 
-  // Sambutan Member Baru Masuk
-  client.on('guildMemberAdd', async (member) => {
-    const config = getWelcomeConfig();
-    const channelId = config[member.guild.id];
-    if (!channelId) return;
+      const embed = new EmbedBuilder()
+        .setColor(0x00FF88)
+        .setTitle(`👋 Selamat Datang di ${member.guild.name}!`)
+        .setDescription(
+          `Halo <@${member.id}>, selamat datang di komunitas kami!\n\n` +
+          `Kamu adalah anggota ke-**${member.guild.memberCount}**.\n` +
+          `Jangan lupa baca peraturan dan segera lakukan verifikasi di channel verifikasi.`
+        )
+        .setThumbnail(member.user.displayAvatarURL({ dynamic: true, size: 512 }))
+        .setImage(member.guild.bannerURL({ size: 1024 }) || null)
+        .setFooter({ text: `User ID: ${member.id}` })
+        .setTimestamp();
 
-    const channel = member.guild.channels.cache.get(channelId);
-    if (!channel || !channel.isTextBased()) return;
+      try {
+        await channel.send({ content: `Selamat datang <@${member.id}>! 🎉`, embeds: [embed] });
+      } catch (err) {
+        console.error('[Welcome] Error sending message:', err);
+      }
+    });
 
-    const embed = new EmbedBuilder()
-      .setColor(0x00FF88)
-      .setTitle(`👋 Selamat Datang di ${member.guild.name}!`)
-      .setDescription(
-        `Halo <@${member.id}>, selamat datang di komunitas kami!\n\n` +
-        `Kamu adalah anggota ke-**${member.guild.memberCount}**.\n` +
-        `Jangan lupa baca peraturan dan segera lakukan verifikasi di channel verifikasi.`
-      )
-      .setThumbnail(member.user.displayAvatarURL({ dynamic: true, size: 512 }))
-      .setImage(member.guild.bannerURL({ size: 1024 }) || null)
-      .setFooter({ text: `User ID: ${member.id}` })
-      .setTimestamp();
+    client.on('guildMemberRemove', async (member) => {
+      const config = getWelcomeConfig();
+      const channelId = config[member.guild.id];
+      if (!channelId) return;
 
-    try {
-      await channel.send({ content: `Selamat datang <@${member.id}>! 🎉`, embeds: [embed] });
-    } catch (err) {
-      console.error('[Welcome] Error sending message:', err);
-    }
-  });
+      const channel = member.guild.channels.cache.get(channelId);
+      if (!channel || !channel.isTextBased()) return;
 
-  // Notifikasi Member Keluar
-  client.on('guildMemberRemove', async (member) => {
-    const config = getWelcomeConfig();
-    const channelId = config[member.guild.id];
-    if (!channelId) return;
+      const embed = new EmbedBuilder()
+        .setColor(0xFF3366)
+        .setTitle('👋 Selamat Tinggal...')
+        .setDescription(`**${member.user.tag}** baru saja meninggalkan server. Sampai jumpa lagi!`)
+        .setThumbnail(member.user.displayAvatarURL({ dynamic: true, size: 256 }))
+        .setTimestamp();
 
-    const channel = member.guild.channels.cache.get(channelId);
-    if (!channel || !channel.isTextBased()) return;
-
-    const embed = new EmbedBuilder()
-      .setColor(0xFF3366)
-      .setTitle('👋 Selamat Tinggal...')
-      .setDescription(`**${member.user.tag}** baru saja meninggalkan server. Sampai jumpa lagi!`)
-      .setThumbnail(member.user.displayAvatarURL({ dynamic: true, size: 256 }))
-      .setTimestamp();
-
-    try {
-      await channel.send({ embeds: [embed] });
-    } catch (err) {}
-  });
+      try {
+        await channel.send({ embeds: [embed] });
+      } catch (err) {}
+    });
+  }
 };

@@ -1,24 +1,31 @@
 const fetch = require('node-fetch');
-const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
+const { 
+  SlashCommandBuilder, 
+  EmbedBuilder, 
+  ActionRowBuilder, 
+  ButtonBuilder, 
+  ButtonStyle 
+} = require('discord.js');
 
-module.exports = (client) => {
-  client.on('messageCreate', async (message) => {
-    if (message.author.bot || !message.guild) return;
-    if (!message.content.startsWith('!steam')) return;
-
-    const args = message.content.trim().split(/\s+/).slice(1);
-    if (!args.length) {
-      return message.reply('❌ Masukkan judul game Steam yang ingin dicari. Contoh: `!steam Dota 2` atau `!steam Cyberpunk 2077`');
-    }
-
-    const gameName = args.join(' ');
+module.exports = {
+  data: new SlashCommandBuilder()
+    .setName('steam')
+    .setDescription('Cari harga dan info game Steam Store')
+    .addStringOption(opt =>
+      opt.setName('game')
+        .setDescription('Judul game Steam yang ingin dicari (contoh: Dota 2, Cyberpunk 2077)')
+        .setRequired(true)
+    ),
+  async execute(interaction) {
+    const gameName = interaction.options.getString('game');
+    await interaction.deferReply();
 
     try {
       const searchRes = await fetch(`https://steamcommunity.com/actions/SearchApps/${encodeURIComponent(gameName)}`);
       const searchData = await searchRes.json();
 
       if (!Array.isArray(searchData) || !searchData.length) {
-        return message.reply(`❌ Game **"${gameName}"** tidak ditemukan di Steam.`);
+        return interaction.editReply(`❌ Game **"${gameName}"** tidak ditemukan di Steam.`);
       }
 
       const appId = searchData[0].appid;
@@ -27,7 +34,7 @@ module.exports = (client) => {
       const detailData = await detailRes.json();
 
       if (!detailData[appId] || !detailData[appId].success || !detailData[appId].data) {
-        return message.reply('❌ Gagal mengambil detail informasi game dari Steam API.');
+        return interaction.editReply('❌ Gagal mengambil detail informasi game dari Steam API.');
       }
 
       const gameData = detailData[appId].data;
@@ -42,7 +49,6 @@ module.exports = (client) => {
       const releaseDate = gameData.release_date?.date || 'Belum Dirilis';
       const storeUrl = `https://store.steampowered.com/app/${appId}`;
 
-      // Potong deskripsi jika terlalu panjang
       let cleanDesc = (gameData.short_description || 'Tidak ada deskripsi singkat.')
         .replace(/<[^>]*>?/gm, '');
       if (cleanDesc.length > 250) {
@@ -50,7 +56,7 @@ module.exports = (client) => {
       }
 
       const embed = new EmbedBuilder()
-        .setColor(0x1B2838) // Steam dark blue theme
+        .setColor(0x1B2838)
         .setTitle(`🎮 ${gameData.name}`)
         .setURL(storeUrl)
         .setDescription(cleanDesc)
@@ -72,10 +78,10 @@ module.exports = (client) => {
           .setStyle(ButtonStyle.Link)
       );
 
-      return message.reply({ embeds: [embed], components: [row] });
+      return interaction.editReply({ embeds: [embed], components: [row] });
     } catch (err) {
       console.error('[SteamAPI] Error:', err);
-      return message.reply('❌ Terjadi kendala saat menghubungi Steam API.');
+      return interaction.editReply('❌ Terjadi kendala saat menghubungi Steam API.');
     }
-  });
+  }
 };

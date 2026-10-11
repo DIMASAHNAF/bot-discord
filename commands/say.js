@@ -1,35 +1,27 @@
-const { PermissionFlagsBits } = require('discord.js');
+const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
 
-module.exports = (client) => {
-  client.on('messageCreate', async (message) => {
-    if (message.author.bot || !message.guild) return;
+module.exports = {
+  data: new SlashCommandBuilder()
+    .setName('say')
+    .setDescription('Mengirim pesan teks melalui bot')
+    .setDefaultMemberPermissions(PermissionFlagsBits.ManageMessages)
+    .addStringOption(opt =>
+      opt.setName('pesan')
+        .setDescription('Pesan yang ingin disampaikan oleh bot')
+        .setRequired(true)
+    ),
+  async execute(interaction) {
+    const text = interaction.options.getString('pesan');
+    const canMentionEveryone = interaction.member.permissions.has(PermissionFlagsBits.MentionEveryone);
 
-    if (message.content.startsWith('!say')) {
-      // Izinkan jika user memiliki izin ManageMessages atau Administrator
-      const hasPermission = message.member.permissions.has(PermissionFlagsBits.ManageMessages) ||
-                            message.member.permissions.has(PermissionFlagsBits.Administrator);
+    await interaction.channel.send({
+      content: text,
+      allowedMentions: canMentionEveryone ? undefined : { parse: ['users'] },
+    });
 
-      if (!hasPermission) {
-        return message.reply('❌ Kamu harus memiliki izin **Manage Messages** atau **Administrator** untuk menggunakan perintah ini.');
-      }
-
-      const text = message.content.trim().split(/\s+/).slice(1).join(' ');
-      if (!text) {
-        return message.reply('❌ Masukkan teks yang ingin diucapkan oleh bot. Contoh: `!say Halo semua, selamat datang!`');
-      }
-
-      // Hapus pesan command dari user agar chat terlihat bersih
-      try {
-        await message.delete();
-      } catch {}
-
-      // Kirim pesan dengan proteksi anti-mass-ping jika bukan admin penuh
-      const canMentionEveryone = message.member.permissions.has(PermissionFlagsBits.MentionEveryone);
-
-      await message.channel.send({
-        content: text,
-        allowedMentions: canMentionEveryone ? undefined : { parse: ['users'] },
-      });
-    }
-  });
+    return interaction.reply({
+      content: '✅ Pesan berhasil dikirim.',
+      ephemeral: true
+    });
+  }
 };

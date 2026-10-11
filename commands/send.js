@@ -1,49 +1,41 @@
-const { PermissionFlagsBits } = require('discord.js');
+const { 
+  SlashCommandBuilder, 
+  PermissionFlagsBits, 
+  ChannelType 
+} = require('discord.js');
 
-module.exports = (client) => {
-  client.on('messageCreate', async (message) => {
-    if (message.author.bot || !message.guild) return;
-    if (!message.content.startsWith('!send')) return;
-
-    const allowedRoleId = '1431543439895560319'; // Role khusus admin / broadcast
-
-    const hasPermission = message.member.permissions.has(PermissionFlagsBits.Administrator) ||
-                          message.member.roles.cache.has(allowedRoleId);
-
-    if (!hasPermission) {
-      return message.reply('❌ Kamu tidak memiliki izin (Administrator / Role Admin) untuk menggunakan perintah broadcast ini.');
-    }
-
-    const args = message.content.trim().split(/\s+/);
-    const channelArg = args[1];
-    const text = args.slice(2).join(' ');
-
-    if (!channelArg || !text) {
-      return message.reply('❌ **Format salah!**\nContoh penggunaan: `!send #pengumuman Halo warga server!` atau `!send <ID_CHANNEL> Teks pesan`');
-    }
-
-    const cleanChannelId = channelArg.replace(/[<#>]/g, '');
-
-    const targetChannel =
-      message.mentions.channels.first() ||
-      message.guild.channels.cache.get(cleanChannelId) ||
-      message.guild.channels.cache.find(
-        (ch) => ch.name.toLowerCase() === channelArg.toLowerCase() && ch.isTextBased()
-      );
-
-    if (!targetChannel || !targetChannel.isTextBased()) {
-      return message.reply('❌ Channel target tidak ditemukan atau bukan channel teks.');
-    }
+module.exports = {
+  data: new SlashCommandBuilder()
+    .setName('send')
+    .setDescription('Mengirim pesan siaran / pengumuman ke channel tertentu')
+    .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
+    .addChannelOption(opt =>
+      opt.setName('channel')
+        .setDescription('Target channel tujuan pengiriman pesan')
+        .addChannelTypes(ChannelType.GuildText, ChannelType.GuildAnnouncement)
+        .setRequired(true)
+    )
+    .addStringOption(opt =>
+      opt.setName('pesan')
+        .setDescription('Isi pesan siaran / pengumuman')
+        .setRequired(true)
+    ),
+  async execute(interaction) {
+    const targetChannel = interaction.options.getChannel('channel');
+    const text = interaction.options.getString('pesan');
 
     try {
-      await targetChannel.send({
-        content: text,
+      await targetChannel.send({ content: text });
+      return interaction.reply({
+        content: `✅ Pesan berhasil dikirim ke <#${targetChannel.id}>.`,
+        ephemeral: true
       });
-
-      return message.reply(`✅ Pesan berhasil dikirim ke **#${targetChannel.name}**.`);
     } catch (error) {
       console.error('[Send] Error:', error);
-      return message.reply('❌ Gagal mengirim pesan ke channel tersebut. Pastikan bot memiliki izin kirim pesan di sana.');
+      return interaction.reply({
+        content: '❌ Gagal mengirim pesan ke channel tersebut. Pastikan bot memiliki izin kirim pesan di sana.',
+        ephemeral: true
+      });
     }
-  });
+  }
 };

@@ -1,14 +1,13 @@
-const { EmbedBuilder, ChannelType } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder, ChannelType } = require('discord.js');
 
-module.exports = (client) => {
-  client.on('messageCreate', async (message) => {
-    if (message.author.bot || !message.guild) return;
-    if (message.content !== '!serverstats') return;
-
-    const { guild } = message;
+module.exports = {
+  data: new SlashCommandBuilder()
+    .setName('serverstats')
+    .setDescription('Melihat dashboard lengkap statistik server Discord ini'),
+  async execute(interaction) {
+    const { guild } = interaction;
 
     try {
-      // Ambil data guild owner dan member lengkap
       const owner = await guild.fetchOwner().catch(() => null);
 
       const totalMembers = guild.memberCount;
@@ -16,13 +15,12 @@ module.exports = (client) => {
       const botCount = cachedMembers.filter(m => m.user.bot).size;
       const humanCount = totalMembers - botCount;
 
-      // Hitung tipe channel
       const channels = guild.channels.cache;
       const textChannels = channels.filter(c => c.type === ChannelType.GuildText).size;
       const voiceChannels = channels.filter(c => c.type === ChannelType.GuildVoice || c.type === ChannelType.GuildStageVoice).size;
       const categoryCount = channels.filter(c => c.type === ChannelType.GuildCategory).size;
 
-      const totalRoles = guild.roles.cache.size - 1; // Kecualikan @everyone
+      const totalRoles = guild.roles.cache.size - 1;
       const boostLevel = guild.premiumTier || 0;
       const boostCount = guild.premiumSubscriptionCount || 0;
 
@@ -43,13 +41,16 @@ module.exports = (client) => {
           { name: '📅 Dibuat Pada', value: createdDate, inline: true }
         )
         .setImage(guild.bannerURL({ size: 1024 }) || null)
-        .setFooter({ text: `Diminta oleh ${message.author.tag}`, iconURL: message.author.displayAvatarURL({ dynamic: true }) })
+        .setFooter({ text: `Diminta oleh ${interaction.user.tag}`, iconURL: interaction.user.displayAvatarURL({ dynamic: true }) })
         .setTimestamp();
 
-      return message.channel.send({ embeds: [embed] });
+      return interaction.reply({ embeds: [embed] });
     } catch (err) {
       console.error('[ServerStats] Error:', err);
-      return message.reply('❌ Terjadi kesalahan saat membaca statistik server.');
+      return interaction.reply({
+        content: '❌ Terjadi kesalahan saat membaca statistik server.',
+        ephemeral: true
+      });
     }
-  });
+  }
 };

@@ -1,74 +1,88 @@
-const { EmbedBuilder } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 
-module.exports = (client) => {
-  client.on('messageCreate', async (message) => {
-    if (message.author.bot || !message.guild) return;
+const rollCommand = {
+  data: new SlashCommandBuilder()
+    .setName('roll')
+    .setDescription('Kocok dadu angka acak')
+    .addIntegerOption(opt =>
+      opt.setName('max')
+        .setDescription('Batas maksimal angka dadu (default: 100, maks: 1.000.000)')
+        .setMinValue(2)
+        .setMaxValue(1000000)
+        .setRequired(false)
+    ),
+  async execute(interaction) {
+    const max = interaction.options.getInteger('max') || 100;
+    const result = Math.floor(Math.random() * max) + 1;
 
-    // 1. Command: !roll [max]
-    if (message.content.startsWith('!roll')) {
-      const args = message.content.trim().split(/\s+/);
-      const max = parseInt(args[1], 10) || 100;
+    const embed = new EmbedBuilder()
+      .setColor(0x5865F2)
+      .setTitle('🎲 Kocok Dadu!')
+      .setDescription(`Hasil lemparan dadu (1 - ${max.toLocaleString()}): **${result.toLocaleString()}**`)
+      .setFooter({ text: `Dilempar oleh ${interaction.user.username}` });
 
-      if (max < 2 || max > 1000000) {
-        return message.reply('❌ Angka maksimal dadu harus antara 2 sampai 1.000.000.');
-      }
+    return interaction.reply({ embeds: [embed] });
+  }
+};
 
-      const result = Math.floor(Math.random() * max) + 1;
-      const embed = new EmbedBuilder()
-        .setColor(0x5865F2)
-        .setTitle('🎲 Kocok Dadu!')
-        .setDescription(`Hasil lemparan dadu (1 - ${max.toLocaleString()}): **${result.toLocaleString()}**`)
-        .setFooter({ text: `Dilempar oleh ${message.author.username}` });
+const flipCommand = {
+  data: new SlashCommandBuilder()
+    .setName('flip')
+    .setDescription('Lempar koin keberuntungan (Heads atau Tails)'),
+  async execute(interaction) {
+    const isHeads = Math.random() < 0.5;
+    const result = isHeads ? '🪙 Gambar (Heads)' : '🪙 Angka (Tails)';
 
-      return message.reply({ embeds: [embed] });
-    }
+    const embed = new EmbedBuilder()
+      .setColor(0xFFA500)
+      .setTitle('🪙 Lempar Koin!')
+      .setDescription(`Koin berputar di udara dan mendarat pada:\n# **${result}**`)
+      .setFooter({ text: `Dilempar oleh ${interaction.user.username}` });
 
-    // 2. Command: !flip (Lempar Koin)
-    if (message.content === '!flip') {
-      const isHeads = Math.random() < 0.5;
-      const result = isHeads ? '🪙 Gambar (Heads)' : '🪙 Angka (Tails)';
+    return interaction.reply({ embeds: [embed] });
+  }
+};
 
-      const embed = new EmbedBuilder()
-        .setColor(0xFFA500)
-        .setTitle('🪙 Lempar Koin!')
-        .setDescription(`Koin berputar di udara dan mendarat pada:\n# **${result}**`)
-        .setFooter({ text: `Dilempar oleh ${message.author.username}` });
+const eightBallCommand = {
+  data: new SlashCommandBuilder()
+    .setName('8ball')
+    .setDescription('Tanyakan sesuatu ke bola ramalan ajaib Magic 8-Ball')
+    .addStringOption(opt =>
+      opt.setName('pertanyaan')
+        .setDescription('Pertanyaan yang ingin kamu tanyakan')
+        .setRequired(true)
+    ),
+  async execute(interaction) {
+    const question = interaction.options.getString('pertanyaan');
 
-      return message.reply({ embeds: [embed] });
-    }
+    const answers = [
+      '🟢 Tentu saja, sudah pasti!',
+      '🟢 Ya, kemungkinan besar demikian.',
+      '🟢 Tanpa ada keraguan sedikit pun.',
+      '🟡 Tanda-tanda mengarah ke ya, tapi jangan terlalu yakin.',
+      '🟡 Coba tanyakan lagi nanti ya.',
+      '🟡 Lebih baik aku tidak memberitahumu sekarang...',
+      '🔴 Jangan berharap terlalu banyak.',
+      '🔴 Jawabannya adalah tidak.',
+      '🔴 Sumberku mengatakan tidak sama sekali.',
+      '🔴 Sangat meragukan!'
+    ];
 
-    // 3. Command: !8ball <pertanyaan>
-    if (message.content.startsWith('!8ball')) {
-      const question = message.content.trim().split(/\s+/).slice(1).join(' ');
-      if (!question) {
-        return message.reply('❌ Tanyakan sesuatu ke bola ramalan 8-Ball! Contoh: `!8ball Apakah saya ganteng?`');
-      }
+    const randomAnswer = answers[Math.floor(Math.random() * answers.length)];
 
-      const answers = [
-        '🟢 Tentu saja, sudah pasti!',
-        '🟢 Ya, kemungkinan besar demikian.',
-        '🟢 Tanpa ada keraguan sedikit pun.',
-        '🟡 Tanda-tanda mengarah ke ya, tapi jangan terlalu yakin.',
-        '🟡 Coba tanyakan lagi nanti ya.',
-        '🟡 Lebih baik aku tidak memberitahumu sekarang...',
-        '🔴 Jangan berharap terlalu banyak.',
-        '🔴 Jawabannya adalah tidak.',
-        '🔴 Sumberku mengatakan tidak sama sekali.',
-        '🔴 Sangat meragukan!'
-      ];
+    const embed = new EmbedBuilder()
+      .setColor(0x2B2D31)
+      .setTitle('🎱 Ramalan Magic 8-Ball')
+      .addFields(
+        { name: '❓ Pertanyaan', value: question },
+        { name: '🔮 Jawaban', value: randomAnswer }
+      )
+      .setFooter({ text: `Penanya: ${interaction.user.username}` });
 
-      const randomAnswer = answers[Math.floor(Math.random() * answers.length)];
+    return interaction.reply({ embeds: [embed] });
+  }
+};
 
-      const embed = new EmbedBuilder()
-        .setColor(0x2B2D31)
-        .setTitle('🎱 Ramalan Magic 8-Ball')
-        .addFields(
-          { name: '❓ Pertanyaan', value: question },
-          { name: '🔮 Jawaban', value: randomAnswer }
-        )
-        .setFooter({ text: `Penanya: ${message.author.username}` });
-
-      return message.reply({ embeds: [embed] });
-    }
-  });
+module.exports = {
+  commands: [rollCommand, flipCommand, eightBallCommand]
 };
